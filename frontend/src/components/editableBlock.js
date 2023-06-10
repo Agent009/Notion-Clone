@@ -13,16 +13,12 @@ const EditableBlock = (props) => {
   const [tag, setTag] = useState("p");
   const [previousKey, setPreviousKey] = useState("");
   const [selectMenuIsOpen, setSelectMenuIsOpen] = useState(false);
-  const [selectMenuPosition, setSelectMenuPosition] = useState({
-    x: null,
-    y: null,
-  });
 
   const contentEditable = useRef(null);
 
-  useEffect(() => {
-    setTag(props.tag);
-  }, []);
+  // useEffect(() => {
+  //   setTag(props.tag);
+  // }, []);
 
   useEffect(() => {
     const htmlChanged = htmlRef.current !== props.html;
@@ -58,12 +54,13 @@ const EditableBlock = (props) => {
         if (!e.shiftKey) {
           e.preventDefault();
           props.addBlock({ id: props.id, ref: contentEditable.current });
-          contentEditable.current.focus(); // Set focus back to contentEditable after Enter is pressed
-          // if (props.id) {
-          //   // editBlock();
-          // } else {
-          sendBlock();
-          // }
+          // Set focus back to contentEditable after Enter is pressed
+          contentEditable.current.focus();
+          if (props.html.length > 0) {
+            editBlock();
+          } else {
+            createBlock();
+          }
         }
       }
     }
@@ -87,14 +84,12 @@ const EditableBlock = (props) => {
 
   const openSelectMenuHandler = () => {
     const { x, y } = getCaretCoordinates();
-    setSelectMenuPosition({ x, y });
     setSelectMenuIsOpen(true);
     document.addEventListener("click", closeSelectMenuHandler.focus);
   };
 
   const closeSelectMenuHandler = () => {
     setSelectMenuIsOpen(false);
-    setSelectMenuPosition({ x: null, y: null });
     document.removeEventListener("click", closeSelectMenuHandler);
     contentEditable.current.focus();
     setCaretToEnd(contentEditable.current);
@@ -116,37 +111,48 @@ const EditableBlock = (props) => {
 
   const deleteBlock = async () => {
     try {
-      const response = await axios.delete(
-        `http://localhost:1338/api/blocks/${props.id}`
-      );
-      console.log("Response:", response.data);
-      props.deleteBlock({ id: props.id, ref: contentEditable.current });
+      await axios
+        .delete(`http://localhost:1338/api/blocks/${props.id}`)
+        .then((response) => {
+          const success = response.data;
+          if (success) {
+            // props.fetchData();
+          }
+          props.deleteBlock({ id: props.id, ref: contentEditable.current });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     } catch (error) {
       console.error(error);
     }
   };
 
   //Update Request
-  // const editBlock = async () => {
-  //   const block = {
-  //     html: htmlRef.current,
-  //     tag: props.tag,
-  //   };
-  //   try {
-  //     await axios
-  //       .put(`http://localhost:1338/api/blocks/${props.id}`, {
-  //         data: block,
-  //       })
-  //       .then((response) => {
-  //         console.log(response);
-  //       });
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
+  const editBlock = async () => {
+    const block = {
+      html: htmlRef.current,
+      tag: props.tag,
+    };
+    try {
+      await axios
+        .put(`http://localhost:1338/api/blocks/${props.id}`, {
+          data: block,
+        })
+        .then((response) => {
+          console.log(response);
+          const success = response.data;
+          if (success) {
+            props.updatePage({ id: props.id, html: htmlRef.current, tag });
+          }
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   //POST REQUEST1
-  const sendBlock = async () => {
+  const createBlock = async () => {
     if (htmlBackup == null) {
       const block = {
         html: htmlRef.current,
@@ -156,9 +162,7 @@ const EditableBlock = (props) => {
       await axios
         .post(
           "http://localhost:1338/api/blocks",
-          {
-            data: block,
-          },
+          { data: block },
           {
             headers: {
               "Content-Type": "application/json",
@@ -179,7 +183,6 @@ const EditableBlock = (props) => {
     <>
       {selectMenuIsOpen && (
         <SelectMenu
-          position={selectMenuPosition}
           onSelect={tagSelectionHandler}
           close={closeSelectMenuHandler}
         />

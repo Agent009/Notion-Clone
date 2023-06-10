@@ -16,7 +16,7 @@ function EditablePage() {
   }, []);
 
   //Function used for the Update Block
-  const updatePageHandler = useCallback((updatedBlock) => {
+  const updatePageHandler = (updatedBlock) => {
     //Updated block is the parameter passed from the editableBlock Comp.
     setBlocks((prevBlocks) => {
       const index = prevBlocks.findIndex((b) => b.id === updatedBlock.id);
@@ -31,7 +31,7 @@ function EditablePage() {
       }
       return prevBlocks;
     });
-  }, []);
+  };
 
   const addBlockHandler = useCallback((currentBlock) => {
     setBlocks((prevBlocks) => {
@@ -119,6 +119,7 @@ function EditablePage() {
           addBlock={addBlockHandler}
           update={updateBlock}
           deleteBlock={deleteBlockHandler}
+          fetchData={fetchItems}
         />
       ))}
     </div>

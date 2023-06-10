@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { matchSorter } from "match-sorter";
 import { allowedTags } from "../utils/Constants";
 
-const MENU_HEIGHT = 150;
-
-const SelectMenu = ({ onSelect, close, position }) => {
+const SelectMenu = ({ onSelect, close }) => {
   const [command, setCommand] = useState("");
   const [items, setItems] = useState(allowedTags);
   const [selectedItem, setSelectedItem] = useState(0);
@@ -54,12 +52,8 @@ const SelectMenu = ({ onSelect, close, position }) => {
     setItems(updatedItems);
   }, [command]);
 
-  const x = position.x;
-  const y = position.y - MENU_HEIGHT;
-  const positionAttributes = { top: y, left: x };
-  console.log("items", items);
   return (
-    <div className="SelectMenu" style={positionAttributes}>
+    <div className="SelectMenu">
       <div className="Items">
         {items.map((item, key) => {
           console.log("item", item);
