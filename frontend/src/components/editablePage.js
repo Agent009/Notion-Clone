@@ -119,7 +119,6 @@ function EditablePage() {
           addBlock={addBlockHandler}
           update={updateBlock}
           deleteBlock={deleteBlockHandler}
-          fetchData={fetchItems}
         />
       ))}
     </div>

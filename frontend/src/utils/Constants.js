@@ -3,22 +3,22 @@ export const CMD_KEY = "/";
 export const allowedTags = [
   {
     id: "page-title",
-    tag: "title",
+    tag: "h1",
     label: "Page Title",
   },
   {
     id: "heading",
-    tag: "heading",
+    tag: "h2",
     label: "Heading",
   },
   {
     id: "subheading",
-    tag: "sub_heading",
+    tag: "h3",
     label: "Sub Heading",
   },
   {
     id: "Paragraph",
-    tag: "paragraph",
+    tag: "p",
     label: "Paragraph",
   },
 ];

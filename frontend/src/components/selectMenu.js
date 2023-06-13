@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { matchSorter } from "match-sorter";
 import { allowedTags } from "../utils/Constants";
 
@@ -56,7 +56,6 @@ const SelectMenu = ({ onSelect, close }) => {
     <div className="SelectMenu">
       <div className="Items">
         {items.map((item, key) => {
-          console.log("item", item);
           const isSelected = items.indexOf(item) === selectedItem;
           return (
             <div
