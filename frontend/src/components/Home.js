@@ -1,4 +1,5 @@
 import React from "react";
+import EditablePage from "./EditablePage";
 
 const Home = () => {
   return (
@@ -14,6 +15,8 @@ const Home = () => {
         You can add content below. Type <span className="Code">/</span> to see
         available commands.
       </p>
+      {/**Render Editablepage components */}
+      <EditablePage />
     </div>
   );
 };

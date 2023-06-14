@@ -1,16 +1,18 @@
 import React, { useState, useCallback, useEffect } from "react";
 import "../css/styles.css";
-import EditableBlock from "./editableBlock";
+import EditableBlock from "./EditableBlock";
 import uid from "./uid";
-import { setCaretToEnd } from "./caretHelpers";
+import { setCaretToEnd } from "./CaretHelpers";
 import axios from "axios";
 
 const initialBlock = { id: uid(), html: "", tag: "p" };
 
 function EditablePage() {
+  //States used in Editable page component
   const [blocks, setBlocks] = useState([initialBlock]);
   const [items, setItems] = useState([]);
 
+  //By calling fetchItems() within the useEffect callback function, it ensures that the data retrieval operation is performed after the component is rendered.
   useEffect(() => {
     fetchItems();
   }, []);
@@ -33,6 +35,7 @@ function EditablePage() {
     });
   };
 
+  //Function used for the Add block Block
   const addBlockHandler = useCallback((currentBlock) => {
     setBlocks((prevBlocks) => {
       const newBlock = { id: uid(), html: "", tag: "p" };
@@ -59,6 +62,7 @@ function EditablePage() {
     );
   };
 
+  //Function used for the Delete block Block
   const deleteBlockHandler = useCallback((currentBlock) => {
     setBlocks((prevBlocks) => {
       const previousBlock =
@@ -79,7 +83,7 @@ function EditablePage() {
     });
   }, []);
 
-  // GET REQUEST
+  // GET Request to Fetch data from Backend
   const fetchItems = async () => {
     try {
       await axios

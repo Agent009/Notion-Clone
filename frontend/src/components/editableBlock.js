@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import "../css/styles.css";
 import SelectMenu from "./selectMenu";
-import { setCaretToEnd } from "./caretHelpers";
+import { setCaretToEnd } from "./CaretHelpers";
 import axios from "axios";
 import { CMD_KEY } from "../utils/Constants";
 
+// Destructuring props: id, html, tag, updatePage, addBlock, deleteBlock
 const EditableBlock = ({
   id,
   html,
@@ -14,6 +15,7 @@ const EditableBlock = ({
   addBlock,
   deleteBlock,
 }) => {
+  //States for Editable block
   const htmlRef = useRef(html || "");
   const [selectedTag, setSelectedTag] = useState(tag || "p");
   const [selectMenuIsOpen, setSelectMenuIsOpen] = useState(false);
@@ -22,6 +24,7 @@ const EditableBlock = ({
   console.log("tag", tag);
   const contentEditable = useRef(null);
 
+  // Triggers an update to the page when the id, html, selectedTag, or updatePage dependencies change
   useEffect(() => {
     const htmlChanged = htmlRef.current !== html;
     const tagChanged = tag !== selectedTag;
@@ -31,6 +34,7 @@ const EditableBlock = ({
     }
   }, [id, html, selectedTag, updatePage]);
 
+  // Modifies the input value by removing a specific pattern if selectMenuIsOpen is false, and updates the htmlRef with the updated value.
   const onChangeHandler = (e) => {
     const inputValue = e.target.value;
     let updatedValue = inputValue;
@@ -49,6 +53,7 @@ const EditableBlock = ({
     htmlRef.current = updatedValue;
   };
 
+  // Handles keydown events and performs various actions based on the pressed key and certain conditions.
   const onKeyDownHandler = (e) => {
     if (e.key === CMD_KEY) {
       if (!tagSelected) {
@@ -58,24 +63,24 @@ const EditableBlock = ({
       }
     }
 
-    // if (e.key === "Enter") {
-    if (!selectMenuIsOpen) {
-      if (!e.shiftKey) {
-        if (!tagSelected) {
-          e.preventDefault();
-          addBlock({ id, ref: contentEditable.current });
-          contentEditable.current.blur();
-          if (html.length > 0) {
-            handleEditBlock();
-          } else {
-            handleCreateBlock();
+    if (e.key === "Enter") {
+      if (!selectMenuIsOpen) {
+        if (!e.shiftKey) {
+          if (!tagSelected) {
+            e.preventDefault();
+            addBlock({ id, ref: contentEditable.current });
+            contentEditable.current.blur();
+            if (html.length > 0) {
+              handleEditBlock();
+            } else {
+              handleCreateBlock();
+            }
+            setTagSelected(false);
+            return;
           }
-          setTagSelected(false);
-          return;
         }
       }
     }
-    // }
 
     if (e.key === "Backspace" && !htmlRef.current) {
       e.preventDefault();
@@ -89,11 +94,13 @@ const EditableBlock = ({
     }
   };
 
+  // Handles keyup events and triggers the openSelectMenuHandler() function when CMD_KEY is released and the select menu is not already open.
   const openSelectMenuHandler = () => {
     setSelectMenuIsOpen(true);
     document.addEventListener("click", closeSelectMenuHandler);
   };
 
+  // Closes the select menu, removes the click event listener, focuses on the contentEditable element, and sets the caret to the end.
   const closeSelectMenuHandler = () => {
     setSelectMenuIsOpen(false);
     document.removeEventListener("click", closeSelectMenuHandler);
@@ -101,6 +108,7 @@ const EditableBlock = ({
     setCaretToEnd(contentEditable.current);
   };
 
+  // Handles the selection of an HTML tag, updates state and references, closes the select menu, and adjusts focus and caret position for continued editing.
   const tagSelectionHandler = (selectedTag) => {
     htmlRef.current = htmlRef.current.replace(CMD_KEY, `<${selectedTag}>`);
     setSelectedTag(selectedTag);
@@ -111,6 +119,7 @@ const EditableBlock = ({
     }, 0);
   };
 
+  //Delete Request
   const handleDeleteBlock = async () => {
     await axios
       .delete(`http://localhost:1338/api/blocks/${id}`)
@@ -126,6 +135,7 @@ const EditableBlock = ({
       });
   };
 
+  //PUT Requeest to update the block data
   const handleEditBlock = async () => {
     const updatedBlock = {
       html: htmlRef.current,
@@ -139,15 +149,18 @@ const EditableBlock = ({
       .then((response) => {
         const success = response.data;
         console.log("Updated: ", success);
+        // If the update is successful, update the page with the new block data
         if (success) {
           updatePage({ id, html: htmlRef.current, tag: selectedTag });
         }
       })
       .catch((error) => {
+        // Handle any errors that occur during the PUT request
         console.log("Error: ", error);
       });
   };
 
+  // Make a POST request to create a new block
   const handleCreateBlock = async () => {
     const block = {
       html: htmlRef.current,
@@ -165,21 +178,25 @@ const EditableBlock = ({
         }
       )
       .then((response) => {
+        // Handle the response from the POST request
         console.log("Response:", response.data);
       })
       .catch((error) => {
+        // Handle any errors that occur during the POST request
         console.error("Error:", error);
       });
   };
 
   return (
     <React.Fragment>
+      {/* Conditional rendering of SelectMenu component */}
       {selectMenuIsOpen && (
         <SelectMenu
           onSelect={tagSelectionHandler}
           close={closeSelectMenuHandler}
         />
       )}
+      {/* ContentEditable component */}
       <ContentEditable
         className="Block"
         innerRef={contentEditable}
@@ -188,7 +205,6 @@ const EditableBlock = ({
         onChange={onChangeHandler}
         onKeyDown={onKeyDownHandler}
         onKeyUp={onKeyUpHandler}
-        onBlur={handleCreateBlock}
       />
     </React.Fragment>
   );
