@@ -58,24 +58,24 @@ const EditableBlock = ({
       }
     }
 
-    if (e.key === "Enter") {
-      if (!selectMenuIsOpen) {
-        if (!e.shiftKey) {
-          if (!tagSelected) {
-            e.preventDefault();
-            addBlock({ id, ref: contentEditable.current });
-            contentEditable.current.blur();
-            if (html.length > 0) {
-              handleEditBlock();
-            } else {
-              handleCreateBlock();
-            }
-            setTagSelected(false);
-            return;
+    // if (e.key === "Enter") {
+    if (!selectMenuIsOpen) {
+      if (!e.shiftKey) {
+        if (!tagSelected) {
+          e.preventDefault();
+          addBlock({ id, ref: contentEditable.current });
+          contentEditable.current.blur();
+          if (html.length > 0) {
+            handleEditBlock();
+          } else {
+            handleCreateBlock();
           }
+          setTagSelected(false);
+          return;
         }
       }
     }
+    // }
 
     if (e.key === "Backspace" && !htmlRef.current) {
       e.preventDefault();
@@ -188,6 +188,7 @@ const EditableBlock = ({
         onChange={onChangeHandler}
         onKeyDown={onKeyDownHandler}
         onKeyUp={onKeyUpHandler}
+        onBlur={handleCreateBlock}
       />
     </React.Fragment>
   );
