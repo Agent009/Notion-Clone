@@ -19,6 +19,7 @@ const EditableBlock = ({
   const [selectMenuIsOpen, setSelectMenuIsOpen] = useState(false);
   const [tagSelected, setTagSelected] = useState(false);
 
+  console.log("tag", tag);
   const contentEditable = useRef(null);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ const EditableBlock = ({
     if (e.key === "Enter") {
       if (!selectMenuIsOpen) {
         if (!e.shiftKey) {
-          if (tagSelected) {
+          if (!tagSelected) {
             e.preventDefault();
             addBlock({ id, ref: contentEditable.current });
             contentEditable.current.blur();
@@ -172,7 +173,7 @@ const EditableBlock = ({
   };
 
   return (
-    <>
+    <React.Fragment>
       {selectMenuIsOpen && (
         <SelectMenu
           onSelect={tagSelectionHandler}
@@ -188,7 +189,7 @@ const EditableBlock = ({
         onKeyDown={onKeyDownHandler}
         onKeyUp={onKeyUpHandler}
       />
-    </>
+    </React.Fragment>
   );
 };
 

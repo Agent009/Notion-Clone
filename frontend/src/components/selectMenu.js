@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { matchSorter } from "match-sorter";
 import { allowedTags } from "../utils/Constants";
 

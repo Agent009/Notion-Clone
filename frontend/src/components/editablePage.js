@@ -97,31 +97,33 @@ function EditablePage() {
   };
 
   return (
-    <div className="Page">
-      {items.map((item) => (
-        <EditableBlock
-          key={item.id}
-          id={item.id}
-          tag={item.attributes.tag}
-          html={item.attributes.html}
-          updatePage={updatePageHandler}
-          addBlock={addBlockHandler}
-          deleteBlock={deleteBlockHandler}
-        />
-      ))}
-      {blocks.map((block) => (
-        <EditableBlock
-          key={block.id}
-          id={block.id}
-          tag={block.tag}
-          html={block.html}
-          updatePage={updatePageHandler}
-          addBlock={addBlockHandler}
-          update={updateBlock}
-          deleteBlock={deleteBlockHandler}
-        />
-      ))}
-    </div>
+    <React.Fragment>
+      <div className="Page">
+        {items.map((item) => (
+          <EditableBlock
+            key={item.id}
+            id={item.id}
+            tag={item.attributes.tag}
+            html={item.attributes.html}
+            updatePage={updatePageHandler}
+            addBlock={addBlockHandler}
+            deleteBlock={deleteBlockHandler}
+          />
+        ))}
+        {blocks.map((block) => (
+          <EditableBlock
+            key={block.id}
+            id={block.id}
+            tag={block.tag}
+            html={block.html}
+            updatePage={updatePageHandler}
+            addBlock={addBlockHandler}
+            update={updateBlock}
+            deleteBlock={deleteBlockHandler}
+          />
+        ))}
+      </div>
+    </React.Fragment>
   );
 }
 
