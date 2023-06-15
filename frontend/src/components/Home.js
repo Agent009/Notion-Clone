@@ -1,5 +1,5 @@
 import React from "react";
-import EditablePage from "./EditablePage";
+import EditablePage from "./editablePage";
 
 const Home = () => {
   return (
