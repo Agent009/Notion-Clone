@@ -54,6 +54,47 @@ const EditableBlock = ({
 
   // Handles keydown events and performs various actions based on the pressed key and certain conditions.
 
+  const onKeyDownHandler = (e) => {
+    if (e.key === "Enter") {
+      if (!selectMenuIsOpen) {
+        if (!e.shiftKey) {
+          if (e.key !== CMD_KEY) {
+            e.preventDefault();
+
+            console.log(
+              "html",
+              htmlRef.current,
+              "aaaaa",
+              html,
+              "selectedTag",
+              selectedTag,
+              "id",
+              id
+            );
+            if (id) {
+              if (htmlRef.current !== CMD_KEY) {
+                console.log("if");
+                handleEditBlock();
+              }
+            } else {
+              if (htmlRef.current !== CMD_KEY) {
+                console.log("else");
+                handleCreateBlock();
+                addBlock({ id, ref: contentEditable.current });
+                contentEditable.current.blur();
+              }
+            }
+            return;
+          }
+        }
+      }
+    }
+
+    if (e.key === "Backspace" && !htmlRef.current) {
+      e.preventDefault();
+      handleDeleteBlock();
+    }
+  };
   const onKeyUpHandler = (e) => {
     if (e.key === CMD_KEY && !selectMenuIsOpen) {
       openSelectMenuHandler();
@@ -169,7 +210,7 @@ const EditableBlock = ({
         html={htmlRef.current}
         tagName={selectedTag}
         onChange={onChangeHandler}
-        // onKeyDown={onKeyDownHandler}
+        onKeyDown={onKeyDownHandler}
         onKeyUp={onKeyUpHandler}
       />
     </React.Fragment>
