@@ -1,17 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import "../css/styles.css";
 import SelectMenu from "./selectMenu";
-import { setCaretToEnd } from "./CaretHelpers";
+import { setCaretToEnd } from "./caretHelpers";
+import { getStrapiAPIURL } from "../utils/api";
 import axios from "axios";
 import { CMD_KEY } from "../utils/Constants";
 
-// Destructuring props: id, html, tag, updatePage, addBlock, deleteBlock
+// Destructuring props: id, html, tag, updateBlockContents, addBlock, deleteBlock
 const EditableBlock = ({
   id,
   html,
   tag,
-  updatePage,
+  backendId,
+  createdAt,
+  updateBlockContents,
   addBlock,
   deleteBlock,
 }) => {
@@ -19,33 +22,66 @@ const EditableBlock = ({
   const htmlRef = useRef(html || "");
   const [selectedTag, setSelectedTag] = useState(tag || "p");
   const [selectMenuIsOpen, setSelectMenuIsOpen] = useState(false);
-  const [tagSelected, setTagSelected] = useState(false);
+  const [enterKeyPressed, setEnterKeyPressed] = useState(false);
 
   const contentEditable = useRef(null);
 
-  // Triggers an update to the page when the id, html, selectedTag, or updatePage dependencies change
+  // Triggers an update to the page when the id, html, selectedTag, or updateBlockContents dependencies change
   useEffect(() => {
     const htmlChanged = htmlRef.current !== html;
     const tagChanged = tag !== selectedTag;
 
     if (htmlChanged || tagChanged) {
-      updatePage({ id, html: htmlRef.current, tag: selectedTag });
+      console.log("HTML or TAG changed, updating page for tag", selectedTag);
+      updateBlockContents({ id, html: htmlRef.current, tag: selectedTag });
     }
-  }, [id, html, selectedTag, updatePage]);
+  }, [id, html, selectedTag, updateBlockContents]);
+
+  useEffect(() => {
+    if (!enterKeyPressed || selectMenuIsOpen) {
+      return;
+    }
+
+    console.log("ENTER key pressed.", "selectMenuIsOpen", selectMenuIsOpen);
+
+    addBlock({ id, ref: contentEditable.current });
+    contentEditable.current.blur();
+
+    if (backendId) {
+      handleEditBlock();
+    } else {
+      handleCreateBlock();
+    }
+
+    setEnterKeyPressed(false);
+  }, [enterKeyPressed]);
 
   // Modifies the input value by removing a specific pattern if selectMenuIsOpen is false, and updates the htmlRef with the updated value.
   const onChangeHandler = (e) => {
     const inputValue = e.target.value;
     let updatedValue = inputValue;
+    console.log(
+      "onChangeHandler -> inputValue",
+      inputValue,
+      "selectMenuIsOpen",
+      selectMenuIsOpen
+    );
 
     if (!selectMenuIsOpen) {
       const slashIndex = inputValue.lastIndexOf(CMD_KEY);
       const nextCharacterIndex = slashIndex + CMD_KEY.length;
+      console.log(
+        "slashIndex",
+        slashIndex,
+        "nextCharacterIndex",
+        nextCharacterIndex
+      );
 
       if (slashIndex !== -1 && nextCharacterIndex < inputValue.length) {
         updatedValue =
           inputValue.slice(0, slashIndex) +
           inputValue.slice(nextCharacterIndex);
+        console.log("updatedValue", updatedValue);
       }
     }
 
@@ -53,41 +89,22 @@ const EditableBlock = ({
   };
 
   // Handles keydown events and performs various actions based on the pressed key and certain conditions.
-
   const onKeyDownHandler = (e) => {
-    if (e.key === "Enter") {
-      if (!selectMenuIsOpen) {
-        if (!e.shiftKey) {
-          if (e.key !== CMD_KEY) {
-            e.preventDefault();
+    console.log(
+      "onKeyDownHandler -> key",
+      e.key,
+      "e.shiftKey",
+      e.shiftKey,
+      "selectMenuIsOpen",
+      selectMenuIsOpen,
+      "event",
+      e
+    );
 
-            console.log(
-              "html",
-              htmlRef.current,
-              "aaaaa",
-              html,
-              "selectedTag",
-              selectedTag,
-              "id",
-              id
-            );
-            if (id) {
-              if (htmlRef.current !== CMD_KEY) {
-                console.log("if");
-                handleEditBlock();
-              }
-            } else {
-              if (htmlRef.current !== CMD_KEY) {
-                console.log("else");
-                handleCreateBlock();
-                addBlock({ id, ref: contentEditable.current });
-                contentEditable.current.blur();
-              }
-            }
-            return;
-          }
-        }
-      }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      setEnterKeyPressed(true);
+      return;
     }
 
     if (e.key === "Backspace" && !htmlRef.current) {
@@ -111,13 +128,17 @@ const EditableBlock = ({
   const closeSelectMenuHandler = () => {
     setSelectMenuIsOpen(false);
     document.removeEventListener("click", closeSelectMenuHandler);
-    contentEditable.current.focus();
-    setCaretToEnd(contentEditable.current);
+
+    if (contentEditable != null && contentEditable.current != null) {
+      contentEditable.current.focus();
+      setCaretToEnd(contentEditable.current);
+    }
   };
 
   // Handles the selection of an HTML tag, updates state and references, closes the select menu, and adjusts focus and caret position for continued editing.
   const tagSelectionHandler = (selectedTag) => {
-    htmlRef.current = htmlRef.current.replace(CMD_KEY, `<${selectedTag}>`);
+    htmlRef.current = htmlRef.current.replace(CMD_KEY, ``);
+    console.log("htmlRef.current", htmlRef.current);
     setSelectedTag(selectedTag);
     closeSelectMenuHandler();
     setTimeout(() => {
@@ -128,8 +149,29 @@ const EditableBlock = ({
 
   //Delete Request
   const handleDeleteBlock = async () => {
+    console.log(
+      "handleDeleteBlock -> backendId",
+      backendId,
+      "id",
+      id,
+      "createdAt",
+      createdAt
+    );
+
+    // The block hasn't been created yet, so we don't need to send any requests to the server, and can just update the local state.
+    if (!backendId) {
+      deleteBlock({ id, ref: contentEditable.current });
+      return;
+    }
+
+    const requestUrl = `${getStrapiAPIURL(`/blocks/${id}`)}`;
     await axios
-      .delete(`http://localhost:1338/api/blocks/${id}`)
+      .delete(requestUrl, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + process.env.REACT_APP_BEARER_TOKEN,
+        },
+      })
       .then((response) => {
         const success = response.data;
         console.log("deleted: ", success);
@@ -142,23 +184,33 @@ const EditableBlock = ({
       });
   };
 
-  //PUT Requeest to update the block data
+  //PUT Request to update the block data
   const handleEditBlock = async () => {
     const updatedBlock = {
       html: htmlRef.current,
       tag: selectedTag,
     };
 
+    const requestUrl = `${getStrapiAPIURL(`/blocks/${id}`)}`;
     await axios
-      .put(`http://localhost:1338/api/blocks/${id}`, {
-        data: updatedBlock,
-      })
+      .put(
+        requestUrl,
+        {
+          data: updatedBlock,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + process.env.REACT_APP_BEARER_TOKEN,
+          },
+        }
+      )
       .then((response) => {
         const success = response.data;
         console.log("Updated: ", success);
         // If the update is successful, update the page with the new block data
         if (success) {
-          updatePage({ id, html: htmlRef.current, tag: selectedTag });
+          updateBlockContents({ id, html: htmlRef.current, tag: selectedTag });
         }
       })
       .catch((error) => {
@@ -173,14 +225,18 @@ const EditableBlock = ({
       html: htmlRef.current,
       tag: selectedTag,
     };
-    console.log("block", block);
+
+    const requestUrl = `${getStrapiAPIURL(`/blocks`)}`;
     await axios
       .post(
-        "http://localhost:1338/api/blocks",
-        { data: block },
+        requestUrl,
+        {
+          data: block,
+        },
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: "Bearer " + process.env.REACT_APP_BEARER_TOKEN,
           },
         }
       )
