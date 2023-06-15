@@ -16,6 +16,7 @@ const SelectMenu = ({ onSelect, close }) => {
       switch (e.key) {
         case "Enter":
           e.preventDefault();
+          console.log("Handling ENTER key event -> selected index", selected, "items", items);
           onSelect(items[selected].tag);
           break;
         case "Backspace":
