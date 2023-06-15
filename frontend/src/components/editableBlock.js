@@ -21,7 +21,6 @@ const EditableBlock = ({
   const [selectMenuIsOpen, setSelectMenuIsOpen] = useState(false);
   const [tagSelected, setTagSelected] = useState(false);
 
-  console.log("tag", tag);
   const contentEditable = useRef(null);
 
   // Triggers an update to the page when the id, html, selectedTag, or updatePage dependencies change
@@ -54,39 +53,6 @@ const EditableBlock = ({
   };
 
   // Handles keydown events and performs various actions based on the pressed key and certain conditions.
-  const onKeyDownHandler = (e) => {
-    if (e.key === CMD_KEY) {
-      if (!tagSelected) {
-        e.preventDefault();
-        setTagSelected(true);
-        return;
-      }
-    }
-
-    if (e.key === "Enter") {
-      if (!selectMenuIsOpen) {
-        if (!e.shiftKey) {
-          if (!tagSelected) {
-            e.preventDefault();
-            addBlock({ id, ref: contentEditable.current });
-            contentEditable.current.blur();
-            if (html.length > 0) {
-              handleEditBlock();
-            } else {
-              handleCreateBlock();
-            }
-            setTagSelected(false);
-            return;
-          }
-        }
-      }
-    }
-
-    if (e.key === "Backspace" && !htmlRef.current) {
-      e.preventDefault();
-      handleDeleteBlock();
-    }
-  };
 
   const onKeyUpHandler = (e) => {
     if (e.key === CMD_KEY && !selectMenuIsOpen) {
@@ -166,7 +132,7 @@ const EditableBlock = ({
       html: htmlRef.current,
       tag: selectedTag,
     };
-
+    console.log("block", block);
     await axios
       .post(
         "http://localhost:1338/api/blocks",
@@ -203,7 +169,7 @@ const EditableBlock = ({
         html={htmlRef.current}
         tagName={selectedTag}
         onChange={onChangeHandler}
-        onKeyDown={onKeyDownHandler}
+        // onKeyDown={onKeyDownHandler}
         onKeyUp={onKeyUpHandler}
       />
     </React.Fragment>

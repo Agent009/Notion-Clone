@@ -1,5 +1,7 @@
 export const CMD_KEY = "/";
 
+export const initialBlock = { id: "", html: "", tag: "p" };
+
 export const allowedTags = [
   {
     id: "page-title",

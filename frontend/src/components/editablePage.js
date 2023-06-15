@@ -4,8 +4,7 @@ import EditableBlock from "./EditableBlock";
 import uid from "./uid";
 import { setCaretToEnd } from "./CaretHelpers";
 import axios from "axios";
-
-const initialBlock = { id: uid(), html: "", tag: "p" };
+import { initialBlock } from "../utils/Constants";
 
 function EditablePage() {
   //States used in Editable page component
@@ -114,9 +113,9 @@ function EditablePage() {
             deleteBlock={deleteBlockHandler}
           />
         ))}
-        {blocks.map((block) => (
+        {blocks.map((block, index) => (
           <EditableBlock
-            key={block.id}
+            key={index}
             id={block.id}
             tag={block.tag}
             html={block.html}
