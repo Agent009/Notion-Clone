@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState} from "react";
 import ContentEditable from "react-contenteditable";
 import "../css/styles.css";
 import SelectMenu from "./selectMenu";
@@ -24,6 +24,7 @@ const EditableBlock = ({
   const [selectMenuIsOpen, setSelectMenuIsOpen] = useState(false);
   const [enterKeyPressed, setEnterKeyPressed] = useState(false);
 
+  // console.log("tag", tag);
   const contentEditable = useRef(null);
 
   // Triggers an update to the page when the id, html, selectedTag, or updateBlockContents dependencies change
@@ -35,47 +36,39 @@ const EditableBlock = ({
       console.log("HTML or TAG changed, updating page for tag", selectedTag);
       updateBlockContents({ id, html: htmlRef.current, tag: selectedTag });
     }
-  }, [id, html, selectedTag, updateBlockContents]);
+  }, [tag,id, html, selectedTag, updateBlockContents]);
 
   useEffect(() => {
     if (!enterKeyPressed || selectMenuIsOpen) {
       return;
     }
-
+  
     console.log("ENTER key pressed.", "selectMenuIsOpen", selectMenuIsOpen);
-
+  
     addBlock({ id, ref: contentEditable.current });
     contentEditable.current.blur();
-
+  
     if (backendId) {
       handleEditBlock();
     } else {
       handleCreateBlock();
     }
-
+  
     setEnterKeyPressed(false);
-  }, [enterKeyPressed]);
+    // eslint-disable-next-line
+  }, [selectMenuIsOpen, enterKeyPressed, contentEditable, id, addBlock, backendId]);
+  
 
   // Modifies the input value by removing a specific pattern if selectMenuIsOpen is false, and updates the htmlRef with the updated value.
   const onChangeHandler = (e) => {
     const inputValue = e.target.value;
     let updatedValue = inputValue;
-    console.log(
-      "onChangeHandler -> inputValue",
-      inputValue,
-      "selectMenuIsOpen",
-      selectMenuIsOpen
-    );
+    console.log("onChangeHandler -> inputValue", inputValue, "selectMenuIsOpen", selectMenuIsOpen);
 
     if (!selectMenuIsOpen) {
       const slashIndex = inputValue.lastIndexOf(CMD_KEY);
       const nextCharacterIndex = slashIndex + CMD_KEY.length;
-      console.log(
-        "slashIndex",
-        slashIndex,
-        "nextCharacterIndex",
-        nextCharacterIndex
-      );
+      console.log("slashIndex", slashIndex, "nextCharacterIndex", nextCharacterIndex);
 
       if (slashIndex !== -1 && nextCharacterIndex < inputValue.length) {
         updatedValue =
@@ -90,16 +83,7 @@ const EditableBlock = ({
 
   // Handles keydown events and performs various actions based on the pressed key and certain conditions.
   const onKeyDownHandler = (e) => {
-    console.log(
-      "onKeyDownHandler -> key",
-      e.key,
-      "e.shiftKey",
-      e.shiftKey,
-      "selectMenuIsOpen",
-      selectMenuIsOpen,
-      "event",
-      e
-    );
+    console.log("onKeyDownHandler -> key", e.key, "e.shiftKey", e.shiftKey, "selectMenuIsOpen", selectMenuIsOpen, "event", e);
 
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -112,6 +96,7 @@ const EditableBlock = ({
       handleDeleteBlock();
     }
   };
+
   const onKeyUpHandler = (e) => {
     if (e.key === CMD_KEY && !selectMenuIsOpen) {
       openSelectMenuHandler();
@@ -149,14 +134,7 @@ const EditableBlock = ({
 
   //Delete Request
   const handleDeleteBlock = async () => {
-    console.log(
-      "handleDeleteBlock -> backendId",
-      backendId,
-      "id",
-      id,
-      "createdAt",
-      createdAt
-    );
+    console.log("handleDeleteBlock -> backendId", backendId, "id", id, "createdAt", createdAt);
 
     // The block hasn't been created yet, so we don't need to send any requests to the server, and can just update the local state.
     if (!backendId) {
@@ -170,7 +148,7 @@ const EditableBlock = ({
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + process.env.REACT_APP_BEARER_TOKEN,
-        },
+        }
       })
       .then((response) => {
         const success = response.data;
@@ -184,7 +162,7 @@ const EditableBlock = ({
       });
   };
 
-  //PUT Request to update the block data
+  //PUT Requeest to update the block data
   const handleEditBlock = async () => {
     const updatedBlock = {
       html: htmlRef.current,
@@ -193,18 +171,14 @@ const EditableBlock = ({
 
     const requestUrl = `${getStrapiAPIURL(`/blocks/${id}`)}`;
     await axios
-      .put(
-        requestUrl,
-        {
-          data: updatedBlock,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + process.env.REACT_APP_BEARER_TOKEN,
-          },
+      .put(requestUrl, {
+        data: updatedBlock,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + process.env.REACT_APP_BEARER_TOKEN,
         }
-      )
+      })
       .then((response) => {
         const success = response.data;
         console.log("Updated: ", success);
@@ -229,10 +203,9 @@ const EditableBlock = ({
     const requestUrl = `${getStrapiAPIURL(`/blocks`)}`;
     await axios
       .post(
-        requestUrl,
-        {
-          data: block,
-        },
+          requestUrl, {
+            data: block
+          },
         {
           headers: {
             "Content-Type": "application/json",
